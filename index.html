@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Laboratorio Crittografico — Rennes-le-Château</title>
+  <style>
+    /* ── RESET & VARIABILI ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0b0f17;
+      --surface: #151b26;
+      --surface2: #1e2638;
+      --surface3: #263147;
+      --border: #2b3648;
+      --gold: #d4a843;
+      --gold-light: #f3cf7a;
+      --gold-dim: #9e7d2b;
+      --gold-glow: rgba(212, 168, 67, 0.16);
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --text-muted: #6e7681;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --green-glow: rgba(63, 185, 80, 0.15);
+      --red: #f85149;
+      --purple: #bc8cff;
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 14px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER & INTRO ── */
+    .header {
+      background: linear-gradient(180deg, #182030 0%, #0d121c 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1rem 0.85rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .header h1 span {
+      color: var(--gold);
+    }
+
+    .header p {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      margin-top: 0.2rem;
+    }
+
+
+    /* ── NAVIGATION TABS ── */
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.6rem 0.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-btn {
+      flex: 0 0 auto;
+      padding: 0.55rem 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--gold-dim);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--gold-glow);
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 168, 67, 0.2);
+    }
+
+    /* ── CONTAINER & PANELS ── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 0.85rem 3rem;
+    }
+
+    #panel-cavallo {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .cavallo-layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (min-width: 1050px) {
+      .cavallo-layout-grid {
+        grid-template-columns: minmax(420px, 480px) minmax(460px, 1fr);
+      }
+    }
+
+    .vigenere-layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (min-width: 1100px) {
+      .vigenere-layout-grid {
+        grid-template-columns: minmax(420px, 480px) minmax(620px, 1fr);
+      }
+    }
+
+    .panel {
+      display: none;
+      animation: fadeIn 0.25s ease forwards;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--surface2);
+      padding-bottom: 0.55rem;
+    }
+
+    .card-title .title-left {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .badge-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 20px;
+      background: var(--surface3);
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .badge-pill.decifra {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+
+    .info-box {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      background: var(--surface2);
+      border-left: 3px solid var(--gold);
+      padding: 0.6rem 0.8rem;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .info-box strong {
+      color: var(--text);
+    }
+
+    /* ── FORM CONTROLS ── */
+    label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+      margin-top: 0.75rem;
+    }
+
+    label:first-child {
+      margin-top: 0;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.86rem;
+      padding: 0.6rem 0.75rem;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px var(--gold-glow);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 72px;
+      line-height: 1.5;
+      word-break: break-all;
+    }
+
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 480px) {
+      .row2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .char-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 0.25rem;
+      font-family: var(--mono);
+    }
+
+    .char-count.exact {
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    .char-count.warn {
+      color: var(--gold);
+    }
+
+    /* ── CHIPS PRESET ── */
+    .preset-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .chip-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      padding: 0.3rem 0.65rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .chip-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: var(--surface3);
+    }
+
+    .chip-btn.highlight {
+      border-color: var(--gold-dim);
+      color: var(--gold-light);
+      background: var(--gold-glow);
+    }
+
+    /* ── BUTTONS ── */
+    .btns {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1 1 auto;
+      padding: 0.62rem 0.95rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+      color: #0b0f17;
+      box-shadow: 0 2px 8px rgba(212, 168, 67, 0.25);
+    }
+
+    .btn-gold:hover {
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-dim {
+      background: var(--surface2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-dim:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-red {
+      background: rgba(248, 81, 73, 0.15);
+      border-color: rgba(248, 81, 73, 0.4);
+      color: var(--red);
+    }
+
+    .btn-red:hover {
+      background: rgba(248, 81, 73, 0.25);
+    }
+
+    .btn-green {
+      background: rgba(63, 185, 80, 0.15);
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--green);
+    }
+
+    .btn-green:hover {
+      background: rgba(63, 185, 80, 0.25);
+    }
+
+    /* ── RISULTATI & OUTPUT ── */
+    .res-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.85rem;
+      margin-bottom: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .res-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      letter-spacing: 0.08em;
+      color: var(--green);
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      min-height: 48px;
+      line-height: 1.6;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .res-box.neutral {
+      color: var(--gold-light);
+    }
+
+    /* ── SCACCHIERA 8x8 ── */
+    .board-container {
+      display: flex;
+      justify-content: center;
+      margin: 0.5rem 0;
+      width: 100%;
+    }
+
+    .chessboard-wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+      padding: 4px;
+    }
+
+    .chessboard {
+      display: grid;
+      grid-template-columns: 24px repeat(8, minmax(28px, 44px));
+      grid-template-rows: repeat(8, minmax(28px, 44px)) 20px;
+      gap: 2px;
+      background: #0f141f;
+      padding: 6px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      user-select: none;
+    }
+
+    @media (max-width: 420px) {
+      .chessboard {
+        grid-template-columns: 18px repeat(8, 32px);
+        grid-template-rows: repeat(8, 32px) 18px;
+        gap: 1.5px;
+        padding: 4px;
+      }
+    }
+
+    .board-coord-row,
+    .board-coord-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .board-cell {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .board-cell.light {
+      background: #1e2638;
+    }
+
+    .board-cell.dark {
+      background: #141b27;
+    }
+
+    .board-cell:hover {
+      background: #2a354d;
+    }
+
+    .board-cell .step-num {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .board-cell .cell-char {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .board-cell.active-step {
+      background: var(--gold) !important;
+      transform: scale(1.08);
+      z-index: 5;
+      box-shadow: 0 0 10px rgba(212, 168, 67, 0.8);
+    }
+
+    .board-cell.active-step .step-num {
+      color: #0b0f17;
+      font-weight: 900;
+    }
+
+    .board-cell.active-step .cell-char {
+      color: #0b0f17;
+      font-weight: 900;
+    }
+
+    .board-cell.visited {
+      border: 1px solid var(--green);
+    }
+
+    /* ── ANIMAZIONE VIGENÈRE (COMPLETAMENTE CONTENUTA) ── */
+    .vigenere-anim-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.75rem 0;
+      display: none;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    .v-strip-scroll-wrap {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 6px 0;
+      margin-bottom: 0.4rem;
+      border-radius: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold-dim) var(--surface2);
+    }
+
+    .v-strip-scroll-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 32px;
+      transform: translateX(-50%);
+      border-left: 1px dashed rgba(212, 168, 67, 0.4);
+      border-right: 1px dashed rgba(212, 168, 67, 0.4);
+      background: rgba(212, 168, 67, 0.06);
+      pointer-events: none;
+      border-radius: 4px;
+    }
+
+    .v-strip-scroll-wrap::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .v-strip-scroll-wrap::-webkit-scrollbar-thumb {
+      background: var(--gold-dim);
+      border-radius: 3px;
+    }
+
+    .v-strip {
+      display: inline-flex;
+      gap: 4px;
+      font-family: var(--mono);
+      min-width: max-content;
+      padding: 2px 4px;
+    }
+
+    .v-tile {
+      width: 30px;
+      height: 34px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+
+    .v-tile .tile-char {
+      font-size: 0.82rem;
+      line-height: 1;
+    }
+
+    .v-tile .tile-sub {
+      font-size: 0.55rem;
+      color: var(--text-muted);
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .v-tile.active {
+      border-color: var(--gold);
+      background: var(--gold-glow);
+      color: var(--gold-light);
+      box-shadow: 0 0 8px rgba(212, 168, 67, 0.4);
+      transform: scale(1.08);
+      z-index: 2;
+    }
+
+    .v-tile.active .tile-sub {
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    .v-tile.done {
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--green);
+    }
+
+    .v-formula-box {
+      margin-top: 0.6rem;
+      padding: 0.55rem 0.75rem;
+      background: var(--bg);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      text-align: center;
+      border-left: 3px solid var(--gold);
+      word-break: break-all;
+      overflow-wrap: anywhere;
+    }
+
+    /* ── TABULA RECTA ── */
+    .tabula-wrap {
+      overflow: auto;
+      max-height: 520px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      background: var(--bg);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media (min-width: 1100px) {
+      .tabula-wrap {
+        max-height: none;
+      }
+    }
+
+    .tabula-table {
+      border-collapse: collapse;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      text-align: center;
+      width: 100%;
+      table-layout: fixed;
+    }
+
+    .tabula-table th, .tabula-table td {
+      padding: 3px 1px;
+      border: 1px solid #1c2434;
+      min-width: 22px;
+      height: 22px;
+      user-select: none;
+    }
+
+    .tabula-table th {
+      background: var(--surface2);
+      color: var(--gold);
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .tabula-table th:first-child {
+      left: 0;
+      z-index: 3;
+    }
+
+    .tabula-table td:first-child {
+      position: sticky;
+      left: 0;
+      background: var(--surface2);
+      color: var(--gold);
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .tabula-table td {
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: background 0.1s ease, color 0.1s ease;
+    }
+
+    .tabula-table td:hover {
+      background: var(--surface3);
+      color: #ffffff;
+    }
+
+    .tabula-table td.highlight, .tabula-table th.highlight {
+      background: rgba(212, 168, 67, 0.35) !important;
+      color: var(--gold-light) !important;
+      font-weight: 800;
+    }
+
+    .tabula-table td.row-active, .tabula-table td.col-active {
+      background: rgba(212, 168, 67, 0.12) !important;
+      color: var(--gold-light);
+    }
+
+    .tabula-table td.intersect {
+      background: var(--gold) !important;
+      color: #0b0f17 !important;
+      font-weight: 900;
+      box-shadow: 0 0 12px rgba(212, 168, 67, 0.95);
+      transform: scale(1.15);
+      position: relative;
+      z-index: 5;
+    }
+
+    /* ── SPEED CONTROL ── */
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 0.65rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .speed-control input[type="range"] {
+      flex: 1;
+      accent-color: var(--gold);
+    }
+
+    /* ── TOAST & FOOTER ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--gold);
+      color: #0b0f17;
+      font-size: 0.82rem;
+      font-weight: 800;
+      padding: 0.55rem 1.25rem;
+      border-radius: 30px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <h1>Laboratorio Crittografico <span>Rennes-le-Château</span></h1>
+    <p>Salto del Cavallo &amp; Cifrario di Vigenère</p>
+  </header>
+
+  <!-- BARRA DI NAVIGAZIONE A 2 SCHEDE -->
+  <nav class="nav" role="tablist">
+    <button id="nav-vigenere" class="nav-btn active" onclick="switchTab('vigenere')">🔑 Cifrario Vigenère</button>
+    <button id="nav-cavallo" class="nav-btn" onclick="switchTab('cavallo')">♞ Salto del Cavallo</button>
+  </nav>
+
+  <!-- CONTENITORE PRINCIPALE -->
+  <main class="container">
+
+    <!-- ─────────────────────────────────────────────────────────────
+         SCHEDA 1: CIFRARIO DI VIGENÈRE (SPERIMENTAZIONE & VERIFICA)
+    ───────────────────────────────────────────────────────────── -->
+    <section id="panel-vigenere" class="panel active">
+
+      <div class="vigenere-layout-grid">
+
+        <div class="card">
+          <div class="card-title">
+            <div class="title-left">
+              <span>🔑</span> <span>Laboratorio Cifrario di Vigenère</span>
+            </div>
+            <span class="badge-pill decifra">Decifratura Polialfabetica</span>
+          </div>
+
+          <div class="info-box">
+            <strong>Come funziona la decifratura:</strong> Ogni lettera del testo cifrato viene incrociata con la corrispondente lettera della chiave nella <strong>Tabula Recta 25×25</strong>.
+          </div>
+
+          <label>Scegli un Test da Provare</label>
+          <div class="preset-chips">
+            <button class="chip-btn highlight" onclick="setVigPreset('block1')">📜 Blocco 1 Pergamena Completo (64 car.)</button>
+          </div>
+
+          <label for="vig-text">Testo da Decifrare</label>
+          <textarea id="vig-text" placeholder="Scrivi una parola o incolla il testo..." oninput="onVigInputChange()"></textarea>
+          <div id="vig-text-count" class="char-count">0 caratteri</div>
+
+          <div style="margin-bottom:0.85rem;">
+            <label for="vig-key">Parola Chiave (Verme)</label>
+            <input type="text" id="vig-key" placeholder="Es. MORTEPEE" value="MORTEPEE" oninput="onVigInputChange()">
+          </div>
+
+          <div class="speed-control">
+            <span>Velocità animazione:</span>
+            <input type="range" id="vig-speed" min="100" max="900" value="380">
+          </div>
+
+          <div class="btns">
+            <button class="btn btn-gold" onclick="startVigAnimation()">▶ Anima Decifratura Lettera per Lettera</button>
+            <button class="btn btn-dim" onclick="applyVigInstant()">⚡ Calcola Istantaneo</button>
+            <button class="btn btn-dim" id="vig-pause-btn" onclick="toggleVigPause()">⏸ Pausa</button>
+          </div>
+
+          <!-- AREA ANIMAZIONE PROTETTA CONTRO OVERFLOW -->
+          <div class="vigenere-anim-box" id="vig-anim-area">
+            <div class="res-label">
+              <span>Striscia Testo Cifrato (C)</span>
+              <span style="font-size:0.68rem;color:var(--text-muted);">Scorrimento automatico centrato</span>
+            </div>
+            <div class="v-strip-scroll-wrap" id="va-text-wrap">
+              <div class="v-strip" id="va-text-strip"></div>
+            </div>
+
+            <div class="res-label">
+              <span>Striscia Chiave Ripetuta (K)</span>
+            </div>
+            <div class="v-strip-scroll-wrap" id="va-key-wrap">
+              <div class="v-strip" id="va-key-strip"></div>
+            </div>
+
+            <div class="v-formula-box" id="va-formula">Pronto per il calcolo</div>
+          </div>
+
+          <div class="res-label">
+            <span>Testo Decifrato Risultante</span>
+          </div>
+          <div class="res-box neutral" id="vig-result">—</div>
+          <div id="vig-details"></div>
+
+          <div class="btns" style="margin-top:0.6rem;">
+            <button class="btn btn-green" onclick="copyToClipboard('vig-result')">📋 Copia Risultato</button>
+            <button class="btn btn-gold" onclick="sendVigToKt()">♞ Invia questo risultato al Salto del Cavallo ➜</button>
+          </div>
+        </div>
+
+        <!-- Tabula Recta Interattiva 25x25 -->
+        <div class="card">
+          <div class="card-title">
+            <div class="title-left">
+              <span>📐</span> <span>Tabula Recta 25×25</span>
+            </div>
+            <span class="badge-pill">Incrocio Riga / Colonna</span>
+          </div>
+          <p style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.4rem;">
+            Tocca qualsiasi cella per verificare l'incrocio tra la riga della <strong>Chiave (K)</strong> e la colonna del <strong>Testo (C)</strong>.
+          </p>
+          <div class="tabula-wrap" id="tabula-container"></div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ─────────────────────────────────────────────────────────────
+         SCHEDA 3: SALTO DEL CAVALLO (SPERIMENTAZIONE & VERIFICA)
+    ───────────────────────────────────────────────────────────── -->
+    <section id="panel-cavallo" class="panel">
+      <div class="cavallo-layout-grid">
+      
+        <div class="card">
+          <div class="card-title">
+            <div class="title-left">
+              <span>♞</span> <span>Laboratorio Salto del Cavallo</span>
+            </div>
+            <span class="badge-pill decifra">Decifratura a Scacchiera</span>
+          </div>
+
+          <div class="info-box" id="kt-board-desc">
+            <strong>Come funziona la scacchiera:</strong> Le 64 lettere non vengono lette normalmente da sinistra a destra, ma ricomposte seguendo il percorso geometrico del cavallo degli scacchi da 1 a 64 caselle.
+          </div>
+
+          <div style="margin-bottom:0.85rem;">
+            <label for="kt-board-select">Scacchiera Storica</label>
+            <select id="kt-board-select" onchange="onBoardChange()">
+              <option value="1">Scacchiera 1 (Standard · Partenza in f6)</option>
+              <option value="2">Scacchiera 2 (Speculare · Partenza in f3)</option>
+            </select>
+          </div>
+
+          <label>Scegli un Test da Provare sulla Scacchiera</label>
+          <div class="preset-chips">
+            <button class="chip-btn highlight" onclick="setKtPreset('vigBlock1')">🔑 Output Vigenère Blocco 1 (JRINOHXT...)</button>
+          </div>
+
+          <label for="kt-input">Testo Cifrato di Ingresso (Esattamente 64 lettere)</label>
+          <textarea id="kt-input" placeholder="Incolla o inserisci 64 lettere..." oninput="updateKtCharCount()"></textarea>
+          <div id="kt-count" class="char-count">0/64 lettere</div>
+
+          <div class="speed-control">
+            <span>Velocità salto:</span>
+            <input type="range" id="kt-speed" min="30" max="350" value="70">
+          </div>
+
+          <div class="btns">
+            <button class="btn btn-gold" onclick="startKtAnimation()">▶ Anima i Salti del Cavallo (1 ➔ 64)</button>
+            <button class="btn btn-dim" onclick="applyKtInstant()">⚡ Ricomponi Istantaneo</button>
+            <button class="btn btn-dim" id="kt-pause-btn" onclick="toggleKtPause()">⏸ Pausa</button>
+          </div>
+
+          <div class="res-label">
+            <span>Testo Decifrato Risultante</span>
+            <span id="kt-step-badge" style="color:var(--gold);font-family:var(--mono);">In attesa</span>
+          </div>
+          <div class="res-box" id="kt-result">—</div>
+
+          <div class="btns" style="margin-top:0.6rem;">
+            <button class="btn btn-green" onclick="copyToClipboard('kt-result')">📋 Copia Risultato</button>
+          </div>
+        </div>
+
+        <!-- Scacchiera interattiva -->
+        <div class="card">
+          <div class="card-title">
+            <div class="title-left">
+              <span>♟</span> <span>Scacchiera 8×8 Interattiva</span>
+            </div>
+            <span class="badge-pill">64 Caselle</span>
+          </div>
+          
+          <div class="board-container">
+            <div class="chessboard-wrapper">
+              <div class="chessboard" id="chessboard-grid"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:1.5rem;justify-content:center;font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem;">
+            <div><span style="display:inline-block;width:10px;height:10px;background:var(--gold);border-radius:2px;vertical-align:middle;margin-right:4px;"></span> Numero Giallo: Ordine del Passo (1–64)</div>
+            <div><span style="display:inline-block;width:10px;height:10px;background:#ffffff;border-radius:2px;vertical-align:middle;margin-right:4px;"></span> Lettera Bianca: Lettera posizionata</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NOTIFICA TOAST -->
+  <div class="toast" id="toast">Copiato negli appunti!</div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>Laboratorio Crittografico · Rennes-le-Château · Applicazione Standalone Offline</p>
+  </footer>
+
+  <!-- ── JAVASCRIPT STANDALONE ── -->
+  <script>
+    // ── COSTANTI CRITTOGRAFICHE ──
+    const ALF25 = "ZABCDEFGHIJKLMNOPQRSTUVXY"; // Z=0, A=1, ..., Y=24 (esclusa W)
+
+    // Scacchiera 1 (Tour Standard - Philippe de Chérisey / Priorato)
+    const BOARD_1 = [
+      60, 15, 46, 29, 62, 17, 44, 31,
+      47, 28, 61, 16, 45, 30, 63, 18,
+      14, 59,  6,  3,  8,  1, 32, 43,
+      27, 48,  9, 36,  5, 34, 19, 64,
+      58, 13,  4,  7,  2, 21, 42, 33,
+      49, 26, 37, 10, 35, 40, 53, 20,
+      12, 57, 24, 51, 38, 55, 22, 41,
+      25, 50, 11, 56, 23, 52, 39, 54
+    ];
+
+    // Scacchiera 2 (Tour Invertito / Speculare)
+    const BOARD_2 = [
+      25, 50, 11, 56, 23, 52, 39, 54,
+      12, 57, 24, 51, 38, 55, 22, 41,
+      49, 26, 37, 10, 35, 40, 53, 20,
+      58, 13,  4,  7,  2, 21, 42, 33,
+      27, 48,  9, 36,  5, 34, 19, 64,
+      14, 59,  6,  3,  8,  1, 32, 43,
+      47, 28, 61, 16, 45, 30, 63, 18,
+      60, 15, 46, 29, 62, 17, 44, 31
+    ];
+
+    const COLS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const ROWS = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+    // Blocco canonico da 64 caratteri della Grande Pergamena
+    const PARCHMENT_BLOCK_1 = "VCPSJQROLDEUXFOISRETOURNAMALINSURVINTETSONPOISSONSURLEGRILANGENE";
+
+    // Stato applicazione
+    let activeBoardId = 1;
+    let currentKtTimer = null;
+    let currentVigTimer = null;
+    let ktAnimRunning = false;
+    let ktAnimPaused = false;
+    let ktCurrentStep = 1;
+    let ktFullResult = '';
+
+    let vigAnimRunning = false;
+    let vigAnimPaused = false;
+    let vigCurrentStep = 0;
+    let vigSteps = [];
+    let vigFullResult = '';
+
+    // ── GESTIONE SCHEDE (TABS) ──
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+      const btn = document.getElementById('nav-' + tabId);
+      const panel = document.getElementById('panel-' + tabId);
+      if (btn && panel) {
+        btn.classList.add('active');
+        panel.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (tabId === 'vigenere') {
+        renderTabulaRecta();
+      }
+    }
+
+    // ── NOTIFICA TOAST & CLIPBOARD ──
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      if (!text || text === '—' || text.startsWith('Richieste')) return;
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        showToast('Copiato negli appunti!');
+      }).catch(() => {
+        showToast('Errore durante la copia');
+      });
+    }
+
+    // ── NORMALIZZAZIONE INPUT (ALFABETO 25 LETTERE, SENZA W, Z=0) ──
+    function cleanInput(text) {
+      return text.toUpperCase().replace(/[^A-Z]/g, '').replace(/W/g, 'V');
+    }
+
+    // ============================================================================
+    // 1. MOTORE SALTO DEL CAVALLO (SOLO DECIFRATURA)
+    // ============================================================================
+
+    function getActiveBoard() {
+      return activeBoardId === 1 ? BOARD_1 : BOARD_2;
+    }
+
+    function onBoardChange() {
+      const sel = document.getElementById('kt-board-select').value;
+      activeBoardId = parseInt(sel, 10);
+      const desc = document.getElementById('kt-board-desc');
+      if (activeBoardId === 1) {
+        desc.innerHTML = `<strong>Scacchiera 1 (Standard):</strong> Tour chiuso del Priorato con partenza in f6 (passo 1). Decifra riordinando le lettere lungo il percorso del cavallo.`;
+      } else {
+        desc.innerHTML = `<strong>Scacchiera 2 (Speculare):</strong> Inversione speculare con partenza in f3. Decifra riordinando le lettere sul percorso speculare.`;
+      }
+      updateKtBoardVisual();
+      const resultBox = document.getElementById('kt-result');
+      if (resultBox) {
+        resultBox.textContent = '—';
+        resultBox.style.color = '';
+      }
+      const stepInfo = document.getElementById('kt-step-badge');
+      if (stepInfo) stepInfo.textContent = 'In attesa';
+      stopKtAnim();
+    }
+
+    function updateKtCharCount() {
+      const input = document.getElementById('kt-input');
+      const countEl = document.getElementById('kt-count');
+      const cleaned = cleanInput(input.value);
+      const len = cleaned.length;
+      countEl.textContent = `${len}/64 lettere`;
+      countEl.className = 'char-count ' + (len === 64 ? 'exact' : (len > 0 ? 'warn' : ''));
+      updateKtBoardVisual();
+
+      const resultBox = document.getElementById('kt-result');
+      if (resultBox) {
+        resultBox.textContent = '—';
+        resultBox.style.color = '';
+      }
+      const stepInfo = document.getElementById('kt-step-badge');
+      if (stepInfo) stepInfo.textContent = 'In attesa';
+      stopKtAnim();
+    }
+
+    function setKtPreset(presetType) {
+      const input = document.getElementById('kt-input');
+      if (presetType === 'vigBlock1') {
+        // Calcola l'output Vigenère per il Blocco 1
+        const cleanT = cleanInput(PARCHMENT_BLOCK_1);
+        const { result } = calculateVigenere(cleanT, 'MORTEPEE');
+        input.value = result;
+      }
+      updateKtCharCount();
+    }
+
+    // DECIFRATURA SALTO DEL CAVALLO
+    function decodeKnightTour(text64, board) {
+      const out = new Array(64);
+      for (let i = 0; i < 64; i++) {
+        const dest = board[i] - 1;
+        out[dest] = text64[i] || ' ';
+      }
+      return out.join('');
+    }
+
+    function updateKtBoardVisual(highlightStep = -1) {
+      const boardEl = document.getElementById('chessboard-grid');
+      if (!boardEl) return;
+      boardEl.innerHTML = '';
+
+      const board = getActiveBoard();
+      const input = document.getElementById('kt-input');
+      const text = cleanInput(input ? input.value : '', 25);
+
+      // 8 righe (da riga 8 a riga 1)
+      for (let r = 0; r < 8; r++) {
+        const rLabel = document.createElement('div');
+        rLabel.className = 'board-coord-row';
+        rLabel.textContent = ROWS[r];
+        boardEl.appendChild(rLabel);
+
+        for (let c = 0; c < 8; c++) {
+          const idx = r * 8 + c;
+          const stepNum = board[idx];
+          const ch = text[idx] || '·';
+
+          const cell = document.createElement('div');
+          const isLight = (r + c) % 2 === 0;
+          cell.className = `board-cell ${isLight ? 'light' : 'dark'}`;
+          cell.id = `cell-step-${stepNum}`;
+
+          if (highlightStep === stepNum) {
+            cell.classList.add('active-step');
+          } else if (highlightStep > 0 && stepNum < highlightStep) {
+            cell.classList.add('visited');
+          }
+
+          cell.innerHTML = `
+            <span class="step-num">${stepNum}</span>
+            <span class="cell-char">${ch}</span>
+          `;
+
+          cell.title = `Casella ${COLS[c]}${ROWS[r]} | Passo: ${stepNum} | Lettera: ${ch}`;
+          boardEl.appendChild(cell);
+        }
+      }
+
+      // Riga inferiore coordinate colonne (a..h)
+      const corner = document.createElement('div');
+      corner.className = 'board-coord-col';
+      boardEl.appendChild(corner);
+
+      for (let c = 0; c < 8; c++) {
+        const cLabel = document.createElement('div');
+        cLabel.className = 'board-coord-col';
+        cLabel.textContent = COLS[c];
+        boardEl.appendChild(cLabel);
+      }
+    }
+
+    function applyKtInstant() {
+      stopKtAnim();
+      const input = document.getElementById('kt-input');
+      const cleaned = cleanInput(input.value, 25);
+      const resultBox = document.getElementById('kt-result');
+      const stepInfo = document.getElementById('kt-step-badge');
+
+      if (cleaned.length !== 64) {
+        resultBox.textContent = `Richieste 64 lettere (${cleaned.length}/64 inserite)`;
+        resultBox.style.color = 'var(--red)';
+        stepInfo.textContent = 'Incompleto';
+        return;
+      }
+
+      const board = getActiveBoard();
+      const res = decodeKnightTour(cleaned, board);
+      resultBox.textContent = res;
+      resultBox.style.color = 'var(--green)';
+      stepInfo.textContent = 'Decifrato ✓';
+      updateKtBoardVisual();
+    }
+
+    function startKtAnimation() {
+      stopKtAnim();
+      const input = document.getElementById('kt-input');
+      const cleaned = cleanInput(input.value, 25);
+      const resultBox = document.getElementById('kt-result');
+      const stepInfo = document.getElementById('kt-step-badge');
+
+      if (cleaned.length !== 64) {
+        showToast('Inserisci esattamente 64 lettere');
+        return;
+      }
+
+      const board = getActiveBoard();
+      ktFullResult = decodeKnightTour(cleaned, board);
+      ktCurrentStep = 1;
+      ktAnimRunning = true;
+      ktAnimPaused = false;
+      updateKtPauseBtn();
+
+      resultBox.textContent = '';
+      resultBox.style.color = 'var(--gold-light)';
+
+      runKtStepLoop();
+    }
+
+    function runKtStepLoop() {
+      const speed = parseInt(document.getElementById('kt-speed').value, 10);
+      const resultBox = document.getElementById('kt-result');
+      const stepInfo = document.getElementById('kt-step-badge');
+
+      currentKtTimer = setInterval(() => {
+        if (ktCurrentStep > 64) {
+          stopKtAnim();
+          resultBox.style.color = 'var(--green)';
+          stepInfo.textContent = 'Decifrato ✓';
+          updateKtBoardVisual();
+          return;
+        }
+
+        stepInfo.textContent = `Passo ${ktCurrentStep}/64`;
+        resultBox.textContent = ktFullResult.slice(0, ktCurrentStep);
+        updateKtBoardVisual(ktCurrentStep);
+        ktCurrentStep++;
+      }, speed);
+    }
+
+    function toggleKtPause() {
+      if (!ktAnimRunning) return;
+
+      if (ktAnimPaused) {
+        // Riprendi dal passo corrente
+        ktAnimPaused = false;
+        updateKtPauseBtn();
+        const stepInfo = document.getElementById('kt-step-badge');
+        if (stepInfo) stepInfo.textContent = `Passo ${ktCurrentStep}/64`;
+        runKtStepLoop();
+      } else {
+        // Metti in pausa
+        if (currentKtTimer) {
+          clearInterval(currentKtTimer);
+          currentKtTimer = null;
+        }
+        ktAnimPaused = true;
+        updateKtPauseBtn();
+        const stepInfo = document.getElementById('kt-step-badge');
+        if (stepInfo) {
+          stepInfo.textContent = `Pausa (Passo ${Math.max(1, ktCurrentStep - 1)}/64)`;
+        }
+      }
+    }
+
+    function updateKtPauseBtn() {
+      const pauseBtn = document.getElementById('kt-pause-btn');
+      if (!pauseBtn) return;
+      if (!ktAnimRunning) {
+        pauseBtn.innerHTML = '⏸ Pausa';
+        pauseBtn.classList.remove('btn-gold');
+        pauseBtn.classList.add('btn-dim');
+      } else if (ktAnimPaused) {
+        pauseBtn.innerHTML = '▶ Riprendi';
+        pauseBtn.classList.remove('btn-dim');
+        pauseBtn.classList.add('btn-gold');
+      } else {
+        pauseBtn.innerHTML = '⏸ Pausa';
+        pauseBtn.classList.remove('btn-gold');
+        pauseBtn.classList.add('btn-dim');
+      }
+    }
+
+    function stopKtAnim() {
+      if (currentKtTimer) {
+        clearInterval(currentKtTimer);
+        currentKtTimer = null;
+      }
+      ktAnimRunning = false;
+      ktAnimPaused = false;
+      updateKtPauseBtn();
+    }
+    // ============================================================================
+    // 2. MOTORE VIGENÈRE (SOLO DECIFRATURA) & ANIMAZIONE SENZA OVERFLOW
+    // ============================================================================
+
+    function calculateVigenere(text, key) {
+      const cleanT = cleanInput(text);
+      const cleanK = cleanInput(key);
+
+      if (!cleanT.length || !cleanK.length) {
+        return { result: '', steps: [] };
+      }
+
+      let result = '';
+      const steps = [];
+
+      for (let i = 0; i < cleanT.length; i++) {
+        const tChar = cleanT[i];
+        const kChar = cleanK[i % cleanK.length];
+        const tIdx = ALF25.indexOf(tChar);
+        const kIdx = ALF25.indexOf(kChar);
+
+        const resIdx = (tIdx + kIdx) % 25;
+        const resChar = ALF25[resIdx];
+        result += resChar;
+
+        steps.push({
+          idx: i,
+          tChar,
+          kChar,
+          tIdx,
+          kIdx,
+          resIdx,
+          resChar
+        });
+      }
+
+      return { result, steps };
+    }
+
+    function onVigInputChange() {
+      stopVigAnim();
+      const text = document.getElementById('vig-text').value;
+      const cleaned = cleanInput(text);
+      const countEl = document.getElementById('vig-text-count');
+      if (countEl) countEl.textContent = `${cleaned.length} lettere valide`;
+
+      const resultBox = document.getElementById('vig-result');
+      if (resultBox) resultBox.textContent = '—';
+
+      const details = document.getElementById('vig-details');
+      if (details) details.innerHTML = '';
+
+      const animArea = document.getElementById('vig-anim-area');
+      if (animArea) animArea.style.display = 'none';
+
+      clearTabulaHighlight();
+    }
+
+    function setVigPreset(presetType) {
+      const textEl = document.getElementById('vig-text');
+      const keyEl = document.getElementById('vig-key');
+
+      if (presetType === 'block1') {
+        textEl.value = PARCHMENT_BLOCK_1;
+        keyEl.value = 'MORTEPEE';
+      }
+      onVigInputChange();
+    }
+
+    function applyVigInstant() {
+      stopVigAnim();
+      const text = document.getElementById('vig-text').value;
+      const key = document.getElementById('vig-key').value;
+      const resultBox = document.getElementById('vig-result');
+      const details = document.getElementById('vig-details');
+
+      const { result } = calculateVigenere(text, key);
+
+      if (!result.length) {
+        resultBox.textContent = '—';
+        details.innerHTML = '';
+        return;
+      }
+
+      resultBox.textContent = result;
+      details.innerHTML = '';
+    }
+
+    function startVigAnimation() {
+      stopVigAnim();
+      const text = document.getElementById('vig-text').value;
+      const key = document.getElementById('vig-key').value;
+      const animArea = document.getElementById('vig-anim-area');
+      const resultBox = document.getElementById('vig-result');
+
+      const { result, steps } = calculateVigenere(text, key);
+      if (!steps.length) {
+        showToast('Inserisci testo e chiave');
+        return;
+      }
+
+      vigFullResult = result;
+      vigSteps = steps;
+      vigCurrentStep = 0;
+      vigAnimRunning = true;
+      vigAnimPaused = false;
+      updateVigPauseBtn();
+
+      animArea.style.display = 'block';
+      resultBox.textContent = '';
+
+      const textStrip = document.getElementById('va-text-strip');
+      const keyStrip = document.getElementById('va-key-strip');
+      const textWrap = document.getElementById('va-text-wrap');
+      const keyWrap = document.getElementById('va-key-wrap');
+      textStrip.innerHTML = '';
+      keyStrip.innerHTML = '';
+
+      // Centratura simmetrica: calcola padding orizzontale affinché le tessere possano trovarsi esattamente al centro
+      const wrapW = (textWrap && textWrap.clientWidth) ? textWrap.clientWidth : 420;
+      const centerPad = Math.max(10, Math.floor(wrapW / 2 - 15));
+      textStrip.style.paddingLeft = centerPad + 'px';
+      textStrip.style.paddingRight = centerPad + 'px';
+      keyStrip.style.paddingLeft = centerPad + 'px';
+      keyStrip.style.paddingRight = centerPad + 'px';
+
+      steps.forEach((s, idx) => {
+        const tTile = document.createElement('div');
+        tTile.className = 'v-tile';
+        tTile.id = `vt-tile-${idx}`;
+        tTile.innerHTML = `<span class="tile-char">${s.tChar}</span>`;
+        textStrip.appendChild(tTile);
+
+        const kTile = document.createElement('div');
+        kTile.className = 'v-tile';
+        kTile.id = `vk-tile-${idx}`;
+        kTile.innerHTML = `<span class="tile-char">${s.kChar}</span>`;
+        keyStrip.appendChild(kTile);
+      });
+
+      if (textWrap) textWrap.scrollLeft = 0;
+      if (keyWrap) keyWrap.scrollLeft = 0;
+
+      runVigStepLoop();
+    }
+
+    function runVigStepLoop() {
+      const formulaBox = document.getElementById('va-formula');
+      const resultBox = document.getElementById('vig-result');
+      const textWrap = document.getElementById('va-text-wrap');
+      const keyWrap = document.getElementById('va-key-wrap');
+      const speed = parseInt(document.getElementById('vig-speed').value, 10);
+
+      currentVigTimer = setInterval(() => {
+        if (vigCurrentStep >= vigSteps.length) {
+          stopVigAnim();
+          resultBox.textContent = vigFullResult;
+          formulaBox.innerHTML = `<strong>Decifrazione completata!</strong> Totale lettere elaborate: ${vigSteps.length}`;
+          showToast('Completato ✓');
+          return;
+        }
+
+        document.querySelectorAll('.v-tile').forEach(t => t.classList.remove('active'));
+
+        const s = vigSteps[vigCurrentStep];
+        const tTile = document.getElementById(`vt-tile-${vigCurrentStep}`);
+        const kTile = document.getElementById(`vk-tile-${vigCurrentStep}`);
+
+        if (tTile) tTile.classList.add('active');
+        if (kTile) kTile.classList.add('active');
+
+        if (vigCurrentStep > 0) {
+          const prevT = document.getElementById(`vt-tile-${vigCurrentStep - 1}`);
+          const prevK = document.getElementById(`vk-tile-${vigCurrentStep - 1}`);
+          if (prevT) prevT.classList.add('done');
+          if (prevK) prevK.classList.add('done');
+        }
+
+        // Sincronizzazione precisa: scorrimento identico di entrambe le strisce per allineare al centro la lettera esaminata
+        if (tTile && textWrap && keyWrap) {
+          const wrapW = textWrap.clientWidth;
+          const targetScroll = Math.max(0, tTile.offsetLeft - Math.floor(wrapW / 2) + Math.floor(tTile.offsetWidth / 2));
+          const scrollBehavior = speed < 120 ? 'auto' : 'smooth';
+          textWrap.scrollTo({ left: targetScroll, behavior: scrollBehavior });
+          keyWrap.scrollTo({ left: targetScroll, behavior: scrollBehavior });
+        }
+
+        formulaBox.innerHTML = `
+          Passo <strong>${vigCurrentStep + 1}/${vigSteps.length}</strong>: 
+          Colonna Testo <strong>«${s.tChar}»</strong> ∩ Riga Chiave <strong>«${s.kChar}»</strong> 
+          ➔ Lettera <strong>«${s.resChar}»</strong>
+        `;
+
+        resultBox.textContent = vigFullResult.slice(0, vigCurrentStep + 1);
+        highlightTabula(s.kIdx, s.tIdx);
+
+        vigCurrentStep++;
+      }, speed);
+    }
+
+    function toggleVigPause() {
+      if (!vigAnimRunning) return;
+
+      if (vigAnimPaused) {
+        // Riprendi dal passo corrente
+        vigAnimPaused = false;
+        updateVigPauseBtn();
+        runVigStepLoop();
+      } else {
+        // Metti in pausa
+        if (currentVigTimer) {
+          clearInterval(currentVigTimer);
+          currentVigTimer = null;
+        }
+        vigAnimPaused = true;
+        updateVigPauseBtn();
+        const formulaBox = document.getElementById('va-formula');
+        if (formulaBox) {
+          formulaBox.innerHTML = `<strong>In pausa</strong> al passo ${vigCurrentStep}/${vigSteps.length}. Clicca Riprendi per continuare.`;
+        }
+      }
+    }
+
+    function updateVigPauseBtn() {
+      const pauseBtn = document.getElementById('vig-pause-btn');
+      if (!pauseBtn) return;
+      if (!vigAnimRunning) {
+        pauseBtn.innerHTML = '⏸ Pausa';
+        pauseBtn.classList.remove('btn-gold');
+        pauseBtn.classList.add('btn-dim');
+      } else if (vigAnimPaused) {
+        pauseBtn.innerHTML = '▶ Riprendi';
+        pauseBtn.classList.remove('btn-dim');
+        pauseBtn.classList.add('btn-gold');
+      } else {
+        pauseBtn.innerHTML = '⏸ Pausa';
+        pauseBtn.classList.remove('btn-gold');
+        pauseBtn.classList.add('btn-dim');
+      }
+    }
+
+    function stopVigAnim() {
+      if (currentVigTimer) {
+        clearInterval(currentVigTimer);
+        currentVigTimer = null;
+      }
+      vigAnimRunning = false;
+      vigAnimPaused = false;
+      updateVigPauseBtn();
+    }
+
+    function sendVigToKt() {
+      const vigRes = document.getElementById('vig-result').textContent.trim();
+      if (!vigRes || vigRes === '—') {
+        showToast('Nessun testo valido da inviare');
+        return;
+      }
+      document.getElementById('kt-input').value = vigRes.slice(0, 64);
+      switchTab('cavallo');
+      showToast('Inviato al Salto del Cavallo');
+      updateKtCharCount();
+    }
+
+    // ── TABULA RECTA 25x25 (PRIORATO DI SION) ──
+    function renderTabulaRecta() {
+      const container = document.getElementById('tabula-container');
+      if (!container || container.innerHTML.trim() !== '') return;
+
+      const table = document.createElement('table');
+      table.className = 'tabula-table';
+
+      // Intestazione colonne
+      const thead = document.createElement('thead');
+      const hRow = document.createElement('tr');
+      const cornerTh = document.createElement('th');
+      cornerTh.textContent = 'K \\ C';
+      hRow.appendChild(cornerTh);
+
+      for (let c = 0; c < 25; c++) {
+        const th = document.createElement('th');
+        th.textContent = ALF25[c];
+        th.id = `th-col-${c}`;
+        th.title = `Colonna ${ALF25[c]} (Indice ${c})`;
+        hRow.appendChild(th);
+      }
+      thead.appendChild(hRow);
+      table.appendChild(thead);
+
+      // Righe della tabella
+      const tbody = document.createElement('tbody');
+      for (let r = 0; r < 25; r++) {
+        const row = document.createElement('tr');
+        const rHeader = document.createElement('td');
+        rHeader.textContent = ALF25[r];
+        rHeader.id = `td-row-${r}`;
+        rHeader.title = `Riga ${ALF25[r]} (Indice ${r})`;
+        row.appendChild(rHeader);
+
+        for (let c = 0; c < 25; c++) {
+          const td = document.createElement('td');
+          const charVal = ALF25[(r + c) % 25];
+          td.textContent = charVal;
+          td.id = `tab-cell-${r}-${c}`;
+          td.title = `Chiave ${ALF25[r]} + Testo ${ALF25[c]} = ${charVal}`;
+
+          td.onmouseenter = () => highlightTabula(r, c);
+          td.onmouseleave = () => clearTabulaHighlight();
+
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    function highlightTabula(rowIdx, colIdx) {
+      clearTabulaHighlight();
+      const rHdr = document.getElementById(`td-row-${rowIdx}`);
+      const cHdr = document.getElementById(`th-col-${colIdx}`);
+      if (rHdr) rHdr.classList.add('highlight');
+      if (cHdr) cHdr.classList.add('highlight');
+
+      for (let c = 0; c < 25; c++) {
+        const cCell = document.getElementById(`tab-cell-${rowIdx}-${c}`);
+        if (cCell) cCell.classList.add('row-active');
+      }
+      for (let r = 0; r < 25; r++) {
+        const rCell = document.getElementById(`tab-cell-${r}-${colIdx}`);
+        if (rCell) rCell.classList.add('col-active');
+      }
+
+      const intersect = document.getElementById(`tab-cell-${rowIdx}-${colIdx}`);
+      if (intersect) {
+        intersect.classList.remove('row-active', 'col-active');
+        intersect.classList.add('intersect');
+      }
+    }
+
+    function clearTabulaHighlight() {
+      document.querySelectorAll('.tabula-table .highlight, .tabula-table .intersect, .tabula-table .row-active, .tabula-table .col-active').forEach(el => {
+        el.classList.remove('highlight', 'intersect', 'row-active', 'col-active');
+      });
+    }
+
+    // Inizializzazione automatica
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTabulaRecta();
+      updateKtBoardVisual();
+      updateKtCharCount();
+      onVigInputChange();
+    });
+  </script>
+</body>
+</html>
